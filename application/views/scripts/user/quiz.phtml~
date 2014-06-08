@@ -1,0 +1,23 @@
+
+<br><br><br>
+
+		<ul>
+    <?php
+    foreach ($this->quiz as $questions) {
+        ?>
+
+        
+				<li>
+					
+					<input type="radio" name="q1">
+				</li>
+
+
+        <?php
+    }
+    ?>
+
+
+	</ul>
+
+

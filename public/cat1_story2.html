@@ -1,0 +1,383 @@
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+
+
+<canvas id="story" style="border:1px solid #000000;" width="720" height="450"></canvas>
+<canvas id="popup" style="position:relative;margin-left:160px;margin-top:-65%;border-radius: 200px;border:5px solid #380000 ;display:none" width="405" height="280"></canvas>
+<audio controls id="sound" style="display:none">
+    <source src="<?= $this->baseUrl() ?>/audio/cat2Story1.m4a" >
+</audio>
+
+
+
+<script type='text/javascript'>
+
+    /* variable initalize */
+
+    var loadImg = 0;
+    var flag = 0;
+    var bondo2Flag = 0;
+    var canvas = document.getElementById("story");
+    var ctx = canvas.getContext('2d');
+    var sprites = [];
+    var friendPlay = new Image();
+    var bondo2Running = new Image();
+    var microRunning = new Image();
+    var microTalking = new Image();
+    var backGround = new Image();
+    var BackGround = new Image();
+    var Aid0 = new Image();
+    var Aid1 = new Image();
+    var Aid2 = new Image();
+    var Aid3 = new Image();
+    var zoom = new Image();
+    var freind = new Image();
+    var popup = document.getElementById("popup");
+    var ctxPopup = popup.getContext('2d');
+    var sound;
+
+    sound = document.getElementById('sound');
+    setTimeout(function() {
+        sound.play();
+        setTimeout(function() {
+            sound.pause();
+        }, 14000);
+
+        setTimeout(function() {
+            sound.play();
+            //firstAidInterval = setInterval(firstAidStep2, 250);
+        }, 18000);
+    }, 2100);
+
+
+    //images.push(friendPlay);
+    backGround.src = '<?= $this->baseUrl() ?>/images/story2/background.jpg';
+    BackGround.src = '<?= $this->baseUrl() ?>/images/story2/Background.jpg';
+    bondo2Running.src = '<?= $this->baseUrl() ?>/images/story2/Bondok running.png';
+    microTalking.src = '<?= $this->baseUrl() ?>/images/story2/Dr Talking.png';
+    microRunning.src = '<?= $this->baseUrl() ?>/images/story2/Dr Walking.png';
+    Aid0.src = '<?= $this->baseUrl() ?>/images/story2/Zoom Aid0.png';
+    Aid1.src = '<?= $this->baseUrl() ?>/images/story2/Zoom Knee Aid.png';
+    Aid2.src = '<?= $this->baseUrl() ?>/images/story2/Knee Aid 2.png';
+    Aid3.src = '<?= $this->baseUrl() ?>/images/story2/Zoom Aid 3.png';
+    zoom.src = '<?= $this->baseUrl() ?>/images/story2/zoom.png';
+    freind.src = '<?= $this->baseUrl() ?>/images/story2/Friend Playing.png';
+
+
+
+
+    function t_steps() {
+        popup.style.display = 'block';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(backGround, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(zoom, 520, 300, zoom.width * 1.5, zoom.height);
+
+        ctx.drawImage(freind,
+                6 * (freind.width) / 8 - 30, (freind.height) / 2,
+                (freind.width) / 8, (freind.height) / 2,
+                400, 150,
+                (freind.width) / 16, (freind.height) / 4);
+
+        ctx.drawImage(bondo2Running,
+                5 * (bondo2Running.width) / 6, 0,
+                (bondo2Running.width) / 6, (bondo2Running.height),
+                220, 230,
+                (bondo2Running.width) / 12, (bondo2Running.height) / 2);
+    }
+
+
+    function Sprite(image, frames, x, y, row, last_remain_row, widthShift, heightShift) {
+        this.image = image;
+        this.frames = frames;
+        this.widthShift = widthShift || 0;
+        this.heightShift = heightShift || 0;
+        this.w = image.width / frames - this.widthShift;
+        this.h = image.height / row - this.heightShift;
+        this.saveHeight = this.h;
+        this.saveWidth = this.w;
+        this.x = x || 0;
+        this.y = y || 0;
+        this.saveY = this.y;
+        this.currentFrame = 0;
+        this.currentRow = 0;
+
+        this.die = function() {
+            this.dead = true;
+        }
+        this.nextFrame = function() {
+            this.currentFrame++;
+            this.currentFrame %= this.frames;
+            if (this.currentFrame == 0)
+            {
+                this.currentRow++;
+                if (this.currentRow == row)
+                {
+                    this.currentFrame = 0;
+                    this.currentRow = 0;
+                    this.frames = frames;
+                }
+                else if (this.currentRow == row - 1)
+                {
+                    this.frames = frames - last_remain_row;
+
+                }
+
+            }
+        }
+
+        this.render = function() {
+            this.nextFrame();
+        }
+    }
+
+    /* function to call every 100 ms*/
+    function renderAnimation() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(backGround, 0, 0, canvas.width, canvas.height);
+        for (var i = 0; i < sprites.length; i++) {
+            var s = sprites[i];
+
+            s.render();
+
+            if (flag == 1 && s.image === friendPlay) {
+                ctx.drawImage(s.image,
+                        7 * s.w, 2 * s.h,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 2, s.h / 2);
+
+            }
+            else if (s.image === microRunning) {
+                s.x += 20;
+                if (s.x >= 160) {
+                    s.x = 160;
+                    ctx.drawImage(s.image,
+                            8 * s.w, 0,
+                            s.w, s.h,
+                            s.x, s.y,
+                            s.w / 2, s.h / 2);
+                    sprites = [];
+
+                    addSprite(Aid0, 6, 0, 14, 2, 1, 26, 0);
+                    addSprite(microTalking, 7, 60, 200, 1, 0, 6, 0);
+                    clearInterval(playInterval);
+
+                    firstAidInterval = setInterval(firstAidStep2, 700);
+                }
+                else {
+                    ctx.drawImage(s.image,
+                            s.currentFrame * s.w, s.currentRow * s.h,
+                            s.w, s.h,
+                            s.x, s.y,
+                            s.w / 2, s.h / 2);
+                }
+            } else if (s.image === bondo2Running && bondo2Flag == 1) {
+
+                ctx.drawImage(bondo2Running,
+                        5 * s.w, 0,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 2, s.h / 2);
+            } else {
+                ctx.drawImage(s.image,
+                        s.currentFrame * s.w, s.currentRow * s.h,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 2, s.h / 2);
+            }
+
+
+            if (s.image === bondo2Running && s.currentFrame == 5) {
+                bondo2Flag = 1;
+            }
+        }
+
+
+        if (s.image === friendPlay && s.currentRow == 2 && s.currentFrame == 7) {
+
+            flag = 1;
+            addSprite(bondo2Running, 6, 20, 150, 1, 0);
+            addSprite(microRunning, 9, 20, 200, 1, 0);
+
+        }
+
+
+    }
+    /*----------------------- Aid Function -----------------------*/
+
+    function firstAidStep1() {
+
+        t_steps();
+        ctxPopup.clearRect(0, 0, popup.width, popup.height);
+
+        ctxPopup.drawImage(BackGround, 0, 0, popup.width, popup.height);
+        for (var i = 0; i < sprites.length; i++) {
+            var s = sprites[i];
+
+            s.render();
+            if (s.image === Aid1 && s.currentRow == 0) {
+                s.h = s.saveHeight;
+                s.h -= 15;
+                s.y = s.saveY;
+            }
+            else if (s.image === Aid1 && s.currentRow == 1) {
+                s.h = s.saveHeight;
+                s.h -= 20;
+                s.y = s.saveY;
+                s.y += 3.8;
+
+            }
+            else if (s.image === Aid1 && s.currentRow == 2) {
+                s.h = s.saveHeight;
+                s.y = s.saveY;
+                s.y += 8;
+            }
+            else if (s.image === Aid1 && s.currentRow == 3) {
+                s.h = s.saveHeight;
+                s.y = s.saveY;
+                s.y += 11.8;
+            }
+            if (s.image === Aid1 && s.currentFramer == 0) {
+                s.w = s.saveWidth;
+                //s.w += 0.;
+            }
+            else if (s.image === Aid1) {
+                s.w = s.saveWidth;
+                s.w += 2;
+            }
+            if (s.image === microTalking) {
+                ctx.drawImage(s.image,
+                        s.currentFrame * s.w, s.currentRow * s.h,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 2, s.h / 2);
+            }
+            else {
+                ctxPopup.drawImage(s.image,
+                        s.currentFrame * s.w, s.currentRow * s.saveHeight,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 3, s.h / 3);
+            }
+
+            if (s.image === Aid1 && s.currentFrame == 5 && s.currentRow == 3) {
+                clearInterval(firstAidInterval);
+                if (!sound.paused) {
+                    setTimeout(function() {
+                        sprites = [];
+                        addSprite(Aid2, 6, 0, 14, 3, 2, 26.5, 0);
+                        addSprite(microTalking, 7, 60, 200, 1, 0, 6, 0);
+                        
+                        firstAidInterval = setInterval(firstAidStep2, 250);
+                    }, 1000);
+
+                }
+            }
+        }
+    }
+    /*----------------------- Aid step 2 ------------------------*/
+    function firstAidStep2() {
+        t_steps();
+        ctxPopup.clearRect(0, 0, canvas.width, canvas.height);
+        ctxPopup.drawImage(BackGround, 0, 0, popup.width, popup.height);
+        for (var i = 0; i < sprites.length; i++) {
+            var s = sprites[i];
+
+            s.render();
+            if (s.image === Aid2 && s.currentRow == 0 || s.image === Aid3 && s.currentRow == 0) {
+                s.h = s.saveHeight;
+                s.h -= 25;
+                s.y = s.saveY;
+                s.y += 1;
+            }
+            else if (s.image === Aid2 && s.currentRow == 1 || s.image === Aid3 && s.currentRow == 1) {
+                s.h = s.saveHeight;
+                s.h -= 20;
+                s.y = s.saveY;
+                s.y += 14;
+            }
+            else if (s.image === Aid2 && s.currentRow == 2 || s.image === Aid3 && s.currentRow == 2) {
+                s.h = s.saveHeight;
+                s.y = s.saveY;
+                s.y += 27;
+            }
+            if (s.image === Aid0 && s.currentRow == 1) {
+                s.y = s.saveY;
+                s.y += 19;
+            }
+            if (s.image === microTalking) {
+                ctx.drawImage(s.image,
+                        s.currentFrame * s.w, s.currentRow * s.h,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 2, s.h / 2);
+            }
+            else {
+                ctxPopup.drawImage(s.image,
+                        s.currentFrame * s.saveWidth, s.currentRow * s.saveHeight,
+                        s.w, s.h,
+                        s.x, s.y,
+                        s.w / 3, s.h / 3);
+            }
+
+
+            if (s.image === Aid0 && s.currentFrame == 4 && s.currentRow == 1) {
+                sprites = [];
+                addSprite(Aid1, 6, 0, 14, 4, 0, 28.2, 3.2);
+                addSprite(microTalking, 7, 60, 200, 1, 0, 6, 0);
+                clearInterval(firstAidInterval);
+                firstAidInterval = setInterval(firstAidStep1, 400);
+                //firstAidInterval = setInterval(firstAidStep2, 500);
+
+            }
+            else if (s.image === Aid2 && s.currentFrame == 3 && s.currentRow == 2) {
+                sprites = [];
+                addSprite(Aid3, 6, 0, 14, 3, 4, 26, 0);
+                addSprite(microTalking, 7, 60, 200, 1, 0, 6, 0);
+                clearInterval(firstAidInterval);
+                firstAidInterval = setInterval(firstAidStep2, 500);
+
+            }
+            //last scene
+            else if (s.image === Aid3 && s.currentFrame == 1 && s.currentRow == 2) {
+
+                clearInterval(firstAidInterval);
+            }
+
+        }
+    }
+
+
+    /*-----------------------------------------------------------*/
+
+
+    function addSprite(img, frames, x, y, rowNumber, last_remain_row, widthShift, heightShift) {
+        //alert (img);7
+        var s = new Sprite(img, frames, x, y, rowNumber, last_remain_row, widthShift, heightShift);
+        sprites.push(s);
+
+
+    }
+
+    function loadedImg(load) {
+        if (load === imagesName.length) {
+            addSprite(friendPlay, 8, 150, 100, 3, 0);
+            setInterval(renderAnimation, 500);
+        }
+    }
+
+
+    backGround.onload = function() {
+        friendPlay.src = '<?= $this->baseUrl() ?>/images/story2/Running and falling.png';
+        friendPlay.onload = function() {
+
+            addSprite(friendPlay, 8, 150, 100, 3, 0);
+            playInterval = setInterval(renderAnimation, 200);
+        }
+    }
+
+</script>
+
+

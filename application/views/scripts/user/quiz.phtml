@@ -1,0 +1,49 @@
+
+<br><br><br>
+<div style="padding: 25px;">
+<form method="post" action="result">
+    <ul>
+        <?php
+        $count = 1;
+        foreach ($this->quiz as $questions) { 
+            $answers = split(",",$questions['answers']);
+                
+            ?>
+                <li>
+                     <h3><?= $questions['question'] ?></h3>
+                     <br><br>
+                     <input type="radio" name="ans<?=$count?>" value="<?= $answers[0] ?>"  checked>
+                     <img class="roundrect" src="../cat1_quiz1/<?= $answers[0] ?>" width="200px" height="300px" onclick=check(<?=$count?>,1)>
+                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                     <input type="radio" name="ans<?=$count?>" value="<?= $answers[1] ?>" >
+                     <img class="roundrect" src="../cat1_quiz1/<?= $answers[1] ?>" width="200px" height="300px" onclick=check(<?=$count?>,2)>
+                     <input type="hidden" name="correct_ans<?=$count?>" value="<?=$answers[2]?>">
+                </li>
+                
+            <?php 
+                $count++;
+        }
+        ?>
+
+
+    </ul>
+    <br><br>
+    <input type="submit" class='btn btn-success active btn-default'>
+</form>
+</div>
+
+<script>
+    
+    function makeChecked(q_no,ans_no){
+        var btn = document.getElementsByName("ans"+q_no)[ans_no-1];
+        btn.checked = 'true';
+    }
+    
+    function check(q,ans){
+      makeChecked(q,ans);
+    }
+  
+</script>
+
+
+
